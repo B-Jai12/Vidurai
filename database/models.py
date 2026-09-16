@@ -18,7 +18,7 @@ class User(Base):
 class FamilyProfile(Base):
     __tablename__ = "family_profiles"
     id                 = Column(Integer, primary_key=True, index=True)
-    owner_user_id      = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_user_id      = Column(String, nullable=False, index=True)
     member_name        = Column(String, nullable=False)
     age                = Column(Integer, nullable=True)
     relationship       = Column(String, nullable=True)
@@ -27,7 +27,7 @@ class FamilyProfile(Base):
 class Prescription(Base):
     __tablename__ = "prescriptions"
     id                 = Column(Integer, primary_key=True, index=True)
-    user_id            = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id            = Column(String, nullable=False, index=True)
     family_profile_id  = Column(Integer, ForeignKey("family_profiles.id"), nullable=True)
     upload_date        = Column(DateTime, default=datetime.utcnow)
     raw_ocr_text       = Column(Text, nullable=True)
@@ -61,7 +61,7 @@ class MedicineLog(Base):
 class ChatHistory(Base):
     __tablename__ = "chat_history"
     id              = Column(Integer, primary_key=True, index=True)
-    user_id         = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id         = Column(String, nullable=False, index=True)
     prescription_id = Column(Integer, ForeignKey("prescriptions.id"), nullable=True)
     message         = Column(Text, nullable=False)
     response        = Column(Text, nullable=False)
@@ -72,7 +72,7 @@ class AlarmSchedule(Base):
     __tablename__ = "alarm_schedules"
     id          = Column(Integer, primary_key=True, index=True)
     medicine_id = Column(Integer, ForeignKey("medicines.id"), nullable=False)
-    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id     = Column(String, nullable=False, index=True)
     alarm_time  = Column(String, nullable=False)
     label       = Column(String, nullable=True)
     is_active   = Column(Boolean, default=True)

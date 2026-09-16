@@ -1,17 +1,28 @@
-import pytesseract
-from PIL import Image
+import os
+import io
 import cv2
 import numpy as np
-import io
-import os
-import base64
-from groq import Groq
+import pytesseract
+from PIL import Image, ImageEnhance, ImageFilter
 from dotenv import load_dotenv
 
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
-client = Groq(api_key=GROQ_API_KEY)
+import base64
+import requests
+import google.generativeai as genai
+from openai import OpenAI
+
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+client = OpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
+
+GEMINI_API_KEY = os.getenv("GOOGLE_GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Stable xAI vision models
+VISION_MODELS = [
+    "grok-2-vision-1212",
+]
 
 
 def preprocess_image(image_bytes):
@@ -52,39 +63,56 @@ def tesseract_ocr(image_bytes):
         return "", 0.0
 
 
-def groq_vision_ocr(image_bytes):
+def xai_vision_ocr(image_bytes):
+    """Try each xAI vision model in order until one succeeds, then fallback to Gemini."""
+    pil_img = Image.open(io.BytesIO(image_bytes))
+    rgb_img = pil_img.convert("RGB")
+    buf = io.BytesIO()
+    rgb_img.save(buf, format="JPEG")
+    b64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+    for model in VISION_MODELS:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}
+                            },
+                            {
+                                "type": "text",
+                                "text": "You are a senior clinical pharmacist specializing in reading messy handwritten medical prescriptions. Extract ALL text from this image exactly as written. If handwriting is unclear, use medical context to infer the most likely medicine name, dosage, or frequency. CRITICAL RULES: 1. Do NOT hallucinate or guess medicines that are not on the paper. 2. Capture every single visible letter, number, and symbol related to the prescription, including dates, doctor names, patient details, and clinic notes. 3. Preserve the structural separation. Return ONLY the raw extracted text. No formatting, no conversational filler, no explanation."
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=2000
+            )
+            text = response.choices[0].message.content.strip()
+            if text:
+                print(f"xAI Grok vision OCR success with model: {model}")
+                return text, 0.95
+        except Exception as e:
+            print(f"xAI Grok vision error with {model}: {e}")
+            # Continue to the next Grok model 
+
+    print("xAI Grok models failed. Falling back to Gemini Vision OCR...")
     try:
-        # Convert to RGB JPEG for compatibility
-        pil_img = Image.open(io.BytesIO(image_bytes))
-        rgb_img = pil_img.convert("RGB")
-        buf = io.BytesIO()
-        rgb_img.save(buf, format="JPEG")
-        b64_image = base64.b64encode(buf.getvalue()).decode("utf-8")
-        mime = "image/jpeg"
-
-        response = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:{mime};base64,{b64_image}"}
-                        },
-                        {
-                            "type": "text",
-                            "text": "You are a medical document reader. Extract ALL text from this prescription image exactly as written. Include medicine names, dosages, frequencies, doctor name, hospital name, date, and patient details. Return only the raw extracted text with no formatting or explanation."
-                        }
-                    ]
-                }
-            ],
-            max_tokens=2000
-        )
-        return response.choices[0].message.content.strip(), 95.0
-
-    except Exception as e:
-        print(f"Groq Vision error: {e}")
+        gemini_model = genai.GenerativeModel("gemini-flash-latest")
+        response = gemini_model.generate_content([
+            {
+                "mime_type": "image/jpeg",
+                "data": b64_image
+            },
+            "You are a senior clinical pharmacist specializing in reading messy handwritten medical prescriptions. Extract ALL text from this image exactly as written. If handwriting is unclear, use medical context to infer the most likely medicine name, dosage, or frequency. CRITICAL RULES: 1. Do NOT hallucinate or guess medicines that are not on the paper. 2. Capture every single visible letter, number, and symbol related to the prescription. 3. Preserve the structural separation. Return ONLY the raw extracted text. No formatting, no conversational filler, no explanation."
+        ])
+        return response.text.strip(), 0.90
+    except Exception as gemini_e:
+        print(f"Gemini fallback error: {gemini_e}")
         return "", 0.0
 
 
@@ -99,7 +127,7 @@ def extract_from_pdf(file_bytes):
             img_bytes = img_byte_arr.getvalue()
             text, conf = tesseract_ocr(img_bytes)
             if conf < 70:
-                text, conf = groq_vision_ocr(img_bytes)
+                text, conf = xai_vision_ocr(img_bytes)
             all_text += text + "\n"
         return all_text.strip(), 90.0, "pdf"
     except Exception as e:
@@ -112,13 +140,15 @@ def extract_text(file_bytes, file_type):
         if "pdf" in file_type.lower():
             return extract_from_pdf(file_bytes)
 
-        # Try Tesseract first
+        # 1. Tesseract OCR (Base pass)
         raw_text, confidence = tesseract_ocr(file_bytes)
+        method = "tesseract"
 
-        # If low confidence use Groq Vision
-        if confidence < 70 or len(raw_text.strip()) < 20:
-            raw_text, confidence = groq_vision_ocr(file_bytes)
-            method = "groq_vision"
+        # 2. If low confidence use xAI Vision
+        if confidence < 0.60 or len(raw_text) < 20:
+            print(f"Tesseract confidence {confidence:.2f} is low. Triggering xAI Vision...")
+            raw_text, confidence = xai_vision_ocr(file_bytes)
+            method = "xai_vision"
         else:
             method = "tesseract"
 
@@ -127,7 +157,7 @@ def extract_text(file_bytes, file_type):
     except Exception as e:
         print(f"extract_text error: {e}")
         try:
-            raw_text, confidence = groq_vision_ocr(file_bytes)
-            return raw_text, confidence, "groq_vision_fallback"
+            raw_text, confidence = xai_vision_ocr(file_bytes)
+            return raw_text, confidence, "xai_vision_fallback"
         except:
             return "", 0.0, "failed"

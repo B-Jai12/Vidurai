@@ -5,3 +5,11 @@ __pycache__/
 *.db
 reports/
 .venv/
+# Credentials & Secrets
+firebase-service-account*.json
+*.json
+!package.json
+!tsconfig.json
+.env*
+*.txt
+__pycache__/

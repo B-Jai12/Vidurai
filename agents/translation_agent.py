@@ -1,10 +1,14 @@
 import json
 import re
-from groq import Groq
+import os
+import google.generativeai as genai
+from dotenv import load_dotenv
 
-GROQ_API_KEY = "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"
-client = Groq(api_key=GROQ_API_KEY)
-MODEL = "llama-3.3-70b-versatile"
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GOOGLE_GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-flash-latest")
 
 
 def translate_medicines(medicines, target_language):
@@ -15,30 +19,31 @@ def translate_medicines(medicines, target_language):
         prompt = f"""Translate the following medicine explanations into {target_language}.
 
 Rules:
-1. Keep ALL medicine names in English (Metformin, Atorvastatin etc)
-2. Keep ALL dosage numbers in English (500mg, 10mg etc)
-3. Keep ALL frequency codes in English (BD, TDS, OD etc)
-4. ONLY translate these fields:
+1. Keep ALL medicine names in English (e.g. Metformin, Atorvastatin)
+2. Keep ALL dosage numbers in English (e.g. 500mg, 10mg)
+3. Keep ALL frequency codes in English (e.g. BD, TDS, OD)
+4. CRITICAL: Maintain exact medical accuracy in the translation. Do not hallucinate or omit details.
+5. Translate the following fields ONLY into the target language using simple, accessible everyday vocabulary:
    - simple_explanation
    - instructions
    - side_effects
    - food_interactions
    - what_it_treats
-5. Return the exact same JSON array structure
-6. Use simple everyday words
-7. Return ONLY the JSON array. No extra text. No markdown.
+6. Return the exact same JSON array structure.
+7. Return ONLY the JSON array. absolutely no conversational text, formatting, or markdown wrappers.
 
 Medicines JSON:
 {json.dumps(medicines, indent=2)}"""
 
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=4000,
-            temperature=0.1
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=4000,
+            )
         )
 
-        response_text = response.choices[0].message.content.strip()
+        response_text = response.text.strip()
         response_text = re.sub(r'```json\s*', '', response_text)
         response_text = re.sub(r'```\s*', '', response_text)
         response_text = response_text.strip()
@@ -62,14 +67,15 @@ Return ONLY the translated text. Nothing else.
 
 Text: {text}"""
 
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500,
-            temperature=0.1
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=500,
+            )
         )
 
-        return response.choices[0].message.content.strip()
+        return response.text.strip()
 
     except Exception as e:
         print(f"translate_text error: {e}")
@@ -88,23 +94,23 @@ Rules:
 2. Keep dosage numbers in English
 3. Keep frequency codes in English (BD, TDS, OD)
 4. Keep doctor name, hospital name, dates in original
-5. Translate: simple_explanation, instructions, side_effects,
-   food_interactions, what_it_treats, special_instructions,
-   drug_interactions descriptions, red_flags
-6. Return the exact same JSON structure
-7. Return ONLY the JSON. No extra text. No markdown.
+5. CRITICAL: Maintain exact medical accuracy in the translation. Explain complex terms simply.
+6. Translate these explicitly into the target language: simple_explanation, instructions, side_effects, food_interactions, what_it_treats, special_instructions, drug_interactions descriptions, red_flags.
+7. Return the exact same JSON structure.
+8. Return ONLY the JSON. No conversational text or markdown blocks.
 
 Prescription JSON:
 {json.dumps(parsed_json, indent=2)}"""
 
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=4000,
-            temperature=0.1
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=4000,
+            )
         )
 
-        response_text = response.choices[0].message.content.strip()
+        response_text = response.text.strip()
         response_text = re.sub(r'```json\s*', '', response_text)
         response_text = re.sub(r'```\s*', '', response_text)
         response_text = response_text.strip()

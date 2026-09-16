@@ -1,25 +1,35 @@
 import os
-import json
-import re
-from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
-client = Groq(api_key=GROQ_API_KEY)
-MODEL = "llama-3.3-70b-versatile"
+import json
+import re
+import google.generativeai as genai
+from openai import OpenAI
+
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+client = OpenAI(api_key=XAI_API_KEY, base_url="https://api.x.ai/v1")
+
+GEMINI_API_KEY = os.getenv("GOOGLE_GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+MODEL = "grok-2-latest"
 
 def parse_prescription(raw_text):
     try:
         prompt = f"""You are a senior clinical pharmacist and medical prescription parser.
-Given this raw prescription text, extract and return a valid JSON object.
-Be accurate. If a field is unclear use your medical knowledge to infer it.
-Never leave a field blank — use "Not specified" if truly absent.
-For simple_explanation: explain as if speaking to a patient with Class 5 education.
-For drug_interactions: check ALL medicine combinations in this prescription.
-For red_flags: flag any dangerous dosages, duplicates, or unusual combinations.
-Return ONLY the JSON. No markdown, no explanation, no code blocks.
+Given this raw handwritten prescription text, extract and return a highly accurate JSON object.
+
+CRITICAL RULES:
+1. ONLY extract what is explicitly written. Do NOT hallucinate or guess missing fields.
+2. If a field is missing, you MUST set its value exactly to "Not specified".
+3. Medicine Normalization: Extract the exact medicine name written, but intelligently map it to its generic name in the `generic_name` field. DO NOT duplicate dosages in the name (e.g. if it says "Clavam 625 625mg", output name: "Clavam 625").
+4. Safety Classification: Every medicine MUST have a `status` field. It can ONLY be one of these three values:
+   - "Normal" (Standard safe medicine)
+   - "Monitor" (Needs monitoring, e.g., BP or diabetes meds, mild interactions)
+   - "Caution" (High risk, antibiotics, strong painkillers, severe interactions)
+5. Explain things simply as if speaking to a patient with Class 5 education.
+6. Return ONLY valid JSON matching this exact structure. No markdown blocks, no text outside JSON.
 
 Return this exact structure:
 {{
@@ -43,6 +53,7 @@ Return this exact structure:
       "instructions": "",
       "simple_explanation": "",
       "what_it_treats": "",
+      "status": "Normal | Monitor | Caution",
       "side_effects": [],
       "food_interactions": [],
       "drug_class": "",
@@ -55,7 +66,7 @@ Return this exact structure:
   "drug_interactions": [
     {{
       "medicines": [],
-      "severity": "",
+      "severity": "low | high",
       "description": "",
       "action": ""
     }}
@@ -66,32 +77,40 @@ Return this exact structure:
 Raw prescription text:
 {raw_text}"""
 
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=4000,
-            temperature=0.1
-        )
-
-        response_text = response.choices[0].message.content.strip()
+        try:
+            response = client.chat.completions.create(
+                model=MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=4000,
+                temperature=0.1
+            )
+            response_text = response.choices[0].message.content.strip()
+        except Exception as grok_e:
+            print(f"xAI Grok parsing failed: {grok_e}. Falling back to Gemini.")
+            gemini_model = genai.GenerativeModel("gemini-flash-latest")
+            gemini_response = gemini_model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=8000,
+                    response_mime_type="application/json",
+                )
+            )
+            response_text = gemini_response.text.strip()
 
         # Clean markdown if present
-        response_text = re.sub(r'```json\s*', '', response_text)
-        response_text = re.sub(r'```\s*', '', response_text)
+        response_text = re.sub(r'^```json\s*', '', response_text)
+        response_text = re.sub(r'^```\s*', '', response_text)
+        response_text = re.sub(r'```$', '', response_text)
         response_text = response_text.strip()
 
-        parsed = json.loads(response_text)
-        return parsed
+        parsed_json = json.loads(response_text)
+        return parsed_json
 
-    except json.JSONDecodeError:
-        try:
-            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
-            if json_match:
-                return json.loads(json_match.group())
-        except:
-            pass
+    except json.JSONDecodeError as e:
+        print(f"JSON Parsing Error: {e}")
+        print(f"Raw Output causing error:\n{response_text}")
         return None
-
     except Exception as e:
         print(f"parse_prescription error: {e}")
         return None
@@ -99,7 +118,7 @@ Raw prescription text:
 
 def chat_with_assistant(user_message, prescription_json, chat_history, language):
     try:
-        system_prompt = f"""You are MedSaathi, a caring and knowledgeable medical assistant.
+        system_prompt = f"""You are Vidur, a caring and knowledgeable medical assistant.
 You have been given the full details of the patient's current prescription.
 
 Your rules:

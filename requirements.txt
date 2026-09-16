@@ -1,19 +1,35 @@
-streamlit
+# ── Core API framework ──────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+python-multipart
+
+# ── Authentication ──────────────────────────────────────────────────────────
+python-jose[cryptography]
+bcrypt
+
+# ── AI / ML ─────────────────────────────────────────────────────────────────
+groq
 google-generativeai
+
+# ── OCR / Image processing ───────────────────────────────────────────────────
 pytesseract
 Pillow
 opencv-python
 pdf2image
+
+# ── Text-to-Speech ───────────────────────────────────────────────────────────
 gTTS
-SpeechRecognition
+
+# ── Database ─────────────────────────────────────────────────────────────────
 sqlalchemy
-apscheduler
+
+# ── PDF report generation ────────────────────────────────────────────────────
 reportlab
 fpdf2
-folium
-streamlit-folium
+
+# ── Config / utilities ───────────────────────────────────────────────────────
 python-dotenv
 requests
-bcrypt
-twilio
-groq
+
+# ── Email ────────────────────────────────────────────────────────────────────
+# (uses built-in smtplib — no extra package needed)
