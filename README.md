@@ -195,5 +195,5 @@ Once the server is running, explore and test the interactive API docs directly:
 
 ##  Author
 
-**Jaideep Botla** ([B-Jai12](https://github.com/B-Jai12))  
+**Jaideep** ([B-Jai12](https://github.com/B-Jai12))  
 B.Tech AIML Student & Builder • Crafting practical AI products that solve real-world problems.
