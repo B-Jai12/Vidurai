@@ -1,158 +1,199 @@
-# Vidur — Your Family Health Companion
+<div align="center">
 
-> **AI-powered prescription reader for India's families.**  
-> Snap a prescription photo. Vidur explains every medicine in your language, flags drug interactions, finds generic savings, and sends refill reminders.
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,25,30&height=220&section=header&text=Vidur%20AI&fontSize=80&fontAlignY=38&desc=AI-Powered%20Multilingual%20Prescription%20Reader%20%26%20Family%20Health%20Companion&descAlignY=60&animation=fadeIn&fontColor=ffffff" width="100%"/>
 
----
+<br/>
 
-## Features
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Gemini 1.5](https://img.shields.io/badge/Google_Gemini-1.5_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[![SQLite](https://img.shields.io/badge/SQLite-SQLAlchemy-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Swagger](https://img.shields.io/badge/API_Docs-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](http://localhost:8000/docs)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-| Feature | Description |
-|---------|-------------|
-| 📸 **OCR Prescription Reading** | Upload any photo, PDF, or screenshot of a prescription |
-| 🤖 **AI Parsing** | Extracts medicines, dosages, timing, instructions via Gemini AI |
-| 🌐 **7 Indian Languages** | Hindi, Telugu, Tamil, Bengali, Kannada, Marathi + English |
-| 🔊 **Voice Output** | Listen to medicine explanations in your language |
-| ⚠️ **Drug Interaction Alerts** | Flags dangerous medicine combinations |
-| 💰 **Generic Savings** | Identifies cheaper generic alternatives |
-| ⏰ **Refill Reminders** | Email alerts before medicines run out |
-| 🏥 **Nearby Hospitals & Pharmacies** | Live map search via OpenStreetMap (no API key needed) |
-| 👨‍👩‍👧 **Caregiver Mode** | Manage prescriptions for your whole family |
-| 📄 **PDF Reports** | Download a complete prescription summary |
-| ✅ **Authenticity Scoring** | AI checks if the prescription looks genuine |
-| 📋 **History** | All past prescriptions in one searchable place |
+<br/>
 
----
+> **Empowering families across India to understand their healthcare.**  
+> Snap a doctor's handwritten prescription — Vidur extracts every medication, clarifies dosages in your native language, alerts against dangerous drug interactions, and identifies affordable generic alternatives.
 
-## Tech Stack
+<br/>
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend / UI** | [Streamlit](https://streamlit.io) |
-| **Database** | SQLite via [SQLAlchemy](https://sqlalchemy.org) |
-| **AI / LLM** | Google Gemini 1.5 Flash (`google-generativeai`) |
-| **OCR** | Google Gemini Vision (image-to-text) |
-| **Translation** | Google Gemini (free translation via prompt) |
-| **Voice** | `gTTS` (Google Text-to-Speech) |
-| **Nearby Places** | OpenStreetMap Overpass API (free, no key) |
-| **Location** | `ipapi.co` (IP geolocation, free) |
-| **Email Alerts** | Gmail SMTP (`smtplib`) |
-| **PDF Reports** | `reportlab` |
-| **Auth** | `bcrypt` password hashing |
+**[📖 Interactive Swagger Docs](#-api-documentation) &nbsp;•&nbsp; [🧠 Multi-Agent Architecture](#-multi-agent-system) &nbsp;•&nbsp; [⚡ Local Setup](#-getting-started) &nbsp;•&nbsp; [🌐 Multilingual Engine](#-supported-languages)**
+
+<br/>
+
+</div>
 
 ---
 
-## Project Structure
+## 🩺 The Healthcare Challenge
+
+Every year across India, millions of families struggle with:
+- **Illegible Handwritten Prescriptions:** Critical medication instructions, dosages, and schedules remain unreadable or misinterpreted.
+- **Language Barriers:** Medical instructions are overwhelmingly written in English or Latin medical jargon, creating anxiety for non-English speakers.
+- **Hidden Financial Strain:** Patients frequently purchase branded medications at inflated prices unaware of chemically identical generic alternatives.
+- **Dangerous Drug Interactions:** Polypharmacy without cross-checking often triggers adverse drug combinations.
+
+Vidur AI solves this directly at the patient and caregiver level.
+
+---
+
+## 💡 The Solution
+
+Vidur AI is an autonomous, multi-agent healthcare intelligence backend. By combining **Google Gemini 1.5 Vision** with specialized domain agents, Vidur breaks down complex clinical prescriptions into plain, accessible, and spoken guidance in regional Indian languages.
 
 ```
-vidur-backend/
-├── app.py                  # Main Streamlit entry point
-├── .env                    # 🔑 API keys & credentials (not committed)
-├── requirements.txt        # Python dependencies
-├── vidur.db                # SQLite database (auto-created)
-│
-├── app_pages/
-│   ├── home.py             # Login / Sign-up page
-│   ├── upload.py           # Prescription upload & analysis
-│   ├── dashboard.py        # Main dashboard (meds, AI chat, nearby, alerts)
-│   ├── caregiver.py        # Family member management
-│   ├── history.py          # Prescription history
-│   └── settings.py         # Profile & preferences
-│
-├── agents/
-│   ├── ocr_agent.py        # Extracts text from images/PDFs
-│   ├── prescription_agent.py # Parses prescriptions + AI chat
-│   ├── translation_agent.py  # Translates medicine info
-│   ├── voice_agent.py        # Text-to-speech
-│   ├── alarm_agent.py        # Email refill & savings alerts
-│   ├── pharmacy_agent.py     # Nearby hospitals & pharmacies
-│   ├── report_agent.py       # PDF generation
-│   └── authenticity_agent.py # Prescription authenticity check
-│
-├── database/
-│   ├── db.py               # SQLAlchemy session
-│   └── models.py           # ORM models (User, Prescription, Medicine, etc.)
-│
-└── utils/
-    └── constants.py        # Languages, frequency maps, colour palette
+       [ Prescription Image / PDF / Scan ]
+                       │
+                       ▼
+          ┌─────────────────────────┐
+          │     OCR Vision Agent    │  Extracts raw clinical text
+          └────────────┬────────────┘
+                       │
+                       ▼
+          ┌─────────────────────────┐
+          │   Prescription Agent    │  Parses medicines, dosage, & frequencies
+          └────────────┬────────────┘
+                       │
+       ┌───────────────┼───────────────┬───────────────┐
+       ▼               ▼               ▼               ▼
+┌──────────────┐┌──────────────┐┌──────────────┐┌──────────────┐
+│  Validation  ││  Pharmacy    ││ Translation  ││ Alarm &      │
+│  & Safety    ││  & Generic   ││ & Voice      ││ Refill Agent │
+│  Agent       ││  Savings     ││ (7 Languages)││ (Caregiver)  │
+└──────────────┘└──────────────┘└──────────────┘└──────────────┘
 ```
 
 ---
 
-## Setup & Installation
+## 🧠 Multi-Agent System
 
-### 1. Prerequisites
-- Python 3.10 or later
-- A Gmail account (for email alerts)
-- A [Google AI Studio](https://aistudio.google.com) API key (free tier works)
+Vidur breaks healthcare reasoning into dedicated, decoupled agents inside `agents/`:
 
-### 2. Clone & Install
+| Agent | Responsibility | Core Technology |
+|---|---|---|
+| **`ocr_agent.py`** | Clinical document ingestion from camera shots, scans, and PDFs | Gemini 1.5 Flash Vision |
+| **`prescription_agent.py`** | Extracts medicine names, strengths, timings (before/after meals), duration | Pydantic Schema Parsing |
+| **`authenticity_agent.py`** | Verifies prescription legitimacy, doctor credentials, and clinic metadata | Heuristic + LLM Verification |
+| **`pharmacy_agent.py`** | Identifies generic salt equivalents and highlights price-saving substitutions | Clinical Knowledge Retrieval |
+| **`translation_agent.py`** | Translates clinical advice into 7 regional Indian languages | Gemini Contextual Translation |
+| **`voice_agent.py`** | Synthesizes regional audio instructions for illiterate or elderly patients | Speech Synthesis Integration |
+| **`alarm_agent.py`** | Computes course end dates and orchestrates refill reminder alerts | Cron / Scheduling Engine |
+| **`report_agent.py`** | Generates downloadable diagnostic and prescription summaries | Structured PDF & Markdown Export |
 
-```bash
-git clone <your-repo-url>
-cd vidur-backend
+---
 
-# Create and activate a virtual environment
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # macOS / Linux
+## 🌐 Supported Languages
 
-pip install -r requirements.txt
+Vidur is built specifically for Indian diversity, delivering clear instructions in:
+
+- **Hindi (हिन्दी)**
+- **Telugu (తెలుగు)**
+- **Tamil (தமிழ்)**
+- **Bengali (বাংলা)**
+- **Kannada (ಕನ್ನಡ)**
+- **Marathi (मराठी)**
+- **English**
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** FastAPI (Python 3.10+)
+- **AI / LLM Engine:** Google Gemini 1.5 Flash (`google-generativeai`)
+- **Database & ORM:** SQLite with SQLAlchemy & Alembic migrations
+- **Data Validation:** Pydantic v2
+- **Document Ingestion:** Pillow, PyPDF2
+- **Security:** CORS Middleware, JWT Auth handlers
+
+---
+
+## 📁 Repository Structure
+
+```
+Vidurai/
+├── agents/                  # Multi-agent intelligence modules
+│   ├── ocr_agent.py         # Prescription vision extraction
+│   ├── prescription_agent.py# Medical entity parsing
+│   ├── pharmacy_agent.py    # Generic equivalents & cost analysis
+│   ├── translation_agent.py # Regional language synthesis
+│   ├── authenticity_agent.py# Credential & anomaly validation
+│   ├── alarm_agent.py       # Refill & schedule computations
+│   └── voice_agent.py       # Audio generation pipeline
+├── database/                # Database models & connection pool
+│   ├── db.py                # Database initialization
+│   └── models.py            # Patient, Prescription, and Alert schemas
+├── routers/                 # Modular REST API endpoints
+│   ├── auth.py              # User & caregiver authentication
+│   ├── prescriptions.py     # Upload and parsing lifecycle
+│   ├── medicines.py         # Drug lookups & interactions
+│   ├── alerts.py            # Refill notification triggers
+│   ├── nearby.py            # Pharmacy & hospital locator
+│   ├── reports.py           # Medical export generation
+│   ├── voice.py             # Spoken instruction delivery
+│   └── chat.py              # Interactive medical conversational assistant
+├── schemas/                 # Pydantic request/response contracts
+├── main.py                  # FastAPI application entry point
+├── requirements.txt         # Production dependencies
+└── pyrightconfig.json       # Strict typechecking configuration
 ```
 
-### 3. Configure Environment Variables
+---
 
-Create a `.env` file in the project root (or edit the existing one):
+## ⚡ Getting Started
 
-```env
-# Google Gemini AI — get free key at https://aistudio.google.com
-GEMINI_API_KEY=your_gemini_api_key_here
+### Prerequisites
+- Python 3.10 or higher
+- Google Gemini API Key ([Get one free at Google AI Studio](https://aistudio.google.com/))
 
-# Gmail SMTP — for email refill reminders & savings alerts
-# Enable "App Passwords" in your Google Account security settings
-EMAIL_ADDRESS=your_email@gmail.com
-EMAIL_PASSWORD=your_gmail_app_password
-```
+### Installation
 
-> **Gmail App Password**: Go to [myaccount.google.com](https://myaccount.google.com) → Security → 2-Step Verification → App Passwords. Generate a password for "Mail".
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/B-Jai12/Vidurai.git
+   cd Vidurai
+   ```
 
-### 4. Run
+2. **Create and activate a virtual environment:**
+   ```bash
+   # Windows
+   python -m venv .venv
+   .venv\Scripts\activate
 
-```bash
-streamlit run app.py
-```
+   # Linux / macOS
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
 
-Open your browser at **http://localhost:8501**
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables:**
+   Create a `.env` file in the root directory:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key_here
+   DATABASE_URL=sqlite:///./vidur.db
+   SECRET_KEY=your_secure_jwt_secret
+   ```
+
+5. **Run the development server:**
+   ```bash
+   uvicorn main:app --reload --port 8000
+   ```
 
 ---
 
-## Quick Demo (No Upload Needed)
+## 📖 API Documentation
 
-1. Create an account and log in
-2. Go to **Upload Prescription**
-3. Click **"Load Sample Prescription"** → **"Analyse Prescription"**
-4. Explore all dashboard features with realistic demo data
-
----
-
-## Environment Variables Reference
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | ✅ Yes | Google Gemini API key |
-| `EMAIL_ADDRESS` | ✅ For alerts | Gmail address for sending alerts |
-| `EMAIL_PASSWORD` | ✅ For alerts | Gmail App Password |
+Once the server is running, explore and test the interactive API docs directly:
+- **Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
 
 ---
 
-## Notes
+## 👤 Author
 
-- **No data leaves your device** except API calls to Google Gemini (for OCR/parsing) and Gmail (for email alerts).
-- **Nearby hospitals/pharmacies** use the free OpenStreetMap Overpass API — no API key required.
-- Vidur is **not a substitute for professional medical advice**. Always consult your doctor.
-
----
-
-## License
-
-MIT — free to use, modify, and distribute.
+**Jaideep Botla** ([@B-Jai12](https://github.com/B-Jai12))  
+B.Tech AIML Student & Builder • Crafting practical AI products that solve real-world problems.
