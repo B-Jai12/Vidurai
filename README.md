@@ -1,15 +1,15 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,20,25,30&height=220&section=header&text=Vidur%20AI&fontSize=80&fontAlignY=38&desc=AI-Powered%20Multilingual%20Prescription%20Reader%20%26%20Family%20Health%20Companion&descAlignY=60&animation=fadeIn&fontColor=ffffff" width="100%"/>
+
 
 <br/>
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![Gemini 1.5](https://img.shields.io/badge/Google_Gemini-1.5_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
-[![SQLite](https://img.shields.io/badge/SQLite-SQLAlchemy-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
-[![Swagger](https://img.shields.io/badge/API_Docs-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](http://localhost:8000/docs)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[[FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[[Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[[Gemini 1.5](https://img.shields.io/badge/Google_Gemini-1.5_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
+[[SQLite](https://img.shields.io/badge/SQLite-SQLAlchemy-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org)
+[[Swagger](https://img.shields.io/badge/API_Docs-Swagger_UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](http://localhost:8000/docs)
+[[License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 <br/>
 
@@ -18,7 +18,7 @@
 
 <br/>
 
-**[📖 Interactive Swagger Docs](#-api-documentation) &nbsp;•&nbsp; [🧠 Multi-Agent Architecture](#-multi-agent-system) &nbsp;•&nbsp; [⚡ Local Setup](#-getting-started) &nbsp;•&nbsp; [🌐 Multilingual Engine](#-supported-languages)**
+**[Interactive Swagger Docs](#-api-documentation) &nbsp;•&nbsp; [Multi-Agent Architecture](#-multi-agent-system) &nbsp;•&nbsp; [Local Setup](#-getting-started) &nbsp;•&nbsp; [Multilingual Engine](#-supported-languages)**
 
 <br/>
 
@@ -26,7 +26,7 @@
 
 ---
 
-## 🩺 The Healthcare Challenge
+##  The Healthcare Challenge
 
 Every year across India, millions of families struggle with:
 - **Illegible Handwritten Prescriptions:** Critical medication instructions, dosages, and schedules remain unreadable or misinterpreted.
@@ -38,7 +38,7 @@ Vidur AI solves this directly at the patient and caregiver level.
 
 ---
 
-## 💡 The Solution
+##  The Solution
 
 Vidur AI is an autonomous, multi-agent healthcare intelligence backend. By combining **Google Gemini 1.5 Vision** with specialized domain agents, Vidur breaks down complex clinical prescriptions into plain, accessible, and spoken guidance in regional Indian languages.
 
@@ -66,7 +66,7 @@ Vidur AI is an autonomous, multi-agent healthcare intelligence backend. By combi
 
 ---
 
-## 🧠 Multi-Agent System
+##  Multi-Agent System
 
 Vidur breaks healthcare reasoning into dedicated, decoupled agents inside `agents/`:
 
@@ -83,7 +83,7 @@ Vidur breaks healthcare reasoning into dedicated, decoupled agents inside `agent
 
 ---
 
-## 🌐 Supported Languages
+##  Supported Languages
 
 Vidur is built specifically for Indian diversity, delivering clear instructions in:
 
@@ -97,7 +97,7 @@ Vidur is built specifically for Indian diversity, delivering clear instructions 
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Framework:** FastAPI (Python 3.10+)
 - **AI / LLM Engine:** Google Gemini 1.5 Flash (`google-generativeai`)
@@ -108,7 +108,7 @@ Vidur is built specifically for Indian diversity, delivering clear instructions 
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 Vidurai/
@@ -140,7 +140,7 @@ Vidurai/
 
 ---
 
-## ⚡ Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Python 3.10 or higher
@@ -185,7 +185,7 @@ Vidurai/
 
 ---
 
-## 📖 API Documentation
+##  API Documentation
 
 Once the server is running, explore and test the interactive API docs directly:
 - **Swagger UI:** `http://localhost:8000/docs`
@@ -193,7 +193,7 @@ Once the server is running, explore and test the interactive API docs directly:
 
 ---
 
-## 👤 Author
+##  Author
 
-**Jaideep Botla** ([@B-Jai12](https://github.com/B-Jai12))  
+**Jaideep Botla** ([B-Jai12](https://github.com/B-Jai12))  
 B.Tech AIML Student & Builder • Crafting practical AI products that solve real-world problems.
